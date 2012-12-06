@@ -1,0 +1,2 @@
+	#cat=basic;type=string;label=Google API Key
+googleApiKey = 
