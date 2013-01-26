@@ -33,10 +33,21 @@ class Tx_Geocoding_Service_GeoService {
 
 	protected $cacheTime = 7776000;	// 90 days
 
+	/**
+	 * base URL to fetch the Coordinates (Latitude, Longitutde of a Address String
+	 */
 	protected $geocodingUrl = 'http://maps.google.com/maps/geo?sensor=false&oe=utf8&gl=en&output=csv';
 
 	/**
-	 * google maps API key
+	 * base URL to fetch all information about an address (add &address=...) 
+	 * see http://maps.googleapis.com/maps/api/geocode/json?sensor=true&address=70182,+Germany
+	 * for an example
+	 */
+	protected $baseApiUrl = 'http://maps.googleapis.com/maps/api/geocode/json?sensor=true';
+
+
+	/**
+	 * set the google maps API key
 	 */
 	public function __construct($apikey = NULL) {
 			// load from extension configuration
@@ -49,8 +60,15 @@ class Tx_Geocoding_Service_GeoService {
 	}
 
 	/**
+	 * uses the "old" CSV query of Google
 	 * core functionality: asks google for the coordinates of an address
 	 * stores known addresses in a local cache
+	 *
+	 * @param $street
+	 * @param $zip
+	 * @param $city
+	 * @param $country
+	 * @return array an array with accuracy, latitude and longitude
 	 */
 	public function getCoordinatesForAddress($street = NULL, $zip = NULL, $city = NULL, $country = 'Germany') {
 		$results = NULL;
@@ -100,7 +118,7 @@ class Tx_Geocoding_Service_GeoService {
 	 * only works if your DB table has the necessary fields
 	 * helpful when calculating a batch of addresses and save the latitude/longitude automatically
 	 */
-	public function calculateCoordinatesForAllRecordsInTable($tableName, $latitudeField = 'latitude', $longitudeField = 'longitude', $streetField = 'street', $zipField = 'zip', $cityField = 'city', $countryField = 'country') {
+	public function calculateCoordinatesForAllRecordsInTable($tableName, $latitudeField = 'latitude', $longitudeField = 'longitude', $streetField = 'street', $zipField = 'zip', $cityField = 'city', $countryField = 'country', $addWhereClause = '') {
 
 			// fetch all records without latitude/longitude
 		$records = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
@@ -108,7 +126,7 @@ class Tx_Geocoding_Service_GeoService {
 			$tableName,
 			'deleted=0 AND
 			(' . $latitudeField . ' IS NULL OR ' . $latitudeField . '=0 OR ' . $latitudeField . '=0.00000000000
-				OR ' . $longitudeField . ' IS NULL OR ' . $longitudeField . '=0 OR ' . $longitudeField . '=0.00000000000)',
+				OR ' . $longitudeField . ' IS NULL OR ' . $longitudeField . '=0 OR ' . $longitudeField . '=0.00000000000) '  . $addWhereClause,
 			'',	// group by
 			'',	// order by
 			'100'	// limit
@@ -152,6 +170,53 @@ class Tx_Geocoding_Service_GeoService {
 
 
 
+	/**
+	 * fetches the city of a ZIP
+	 * uses the JSON query string
+	 */
+	public function getCityFromZip($zip, $country = 'Germany', $street = NULL) {
+		$results = NULL;
+
+			// get a full name (e.g. "Germany") from a country code
+		$country = $this->getCountryFromPrefix($country);
+	
+		$address = $street . ', ' . $zip . ', ' . $country;
+		$address = trim($address, ', ');	// remove trailing commas and whitespaces
+
+		if ($address) {
+			$cacheObject = $this->initializeCache();
+
+				// create the cache key
+			$cacheKey = 'geocodecityfromzip-' . strtolower(str_replace(' ', '-', preg_replace("/[^0-9a-zA-Z ]/m", '', $address)));
+
+				// not in cache yet
+			if (!$cacheObject->has($cacheKey)) {
+		
+				$geocodingUrl = $this->baseApiUrl . '&address=' . urlencode($address);
+				$results = t3lib_div::getUrl($geocodingUrl);
+				$results = json_decode($results);
+				var_dump($results);
+				exit;
+
+				$results = array(
+					'accuracy'  => $accuracy,
+					'latitude'  => $latitude,
+					'longitude' => $longitude
+				);
+
+				if ($latitude != 0) {
+						// Now store the $result in cache and return
+					$cacheObject->set($cacheKey, $results, array(), $this->cacheTime);
+				}
+			} else {
+				$results = $cacheObject->get($cacheKey);
+			}
+		}
+		return $results;
+	}
+
+
+
 
 	/**
 	 * initializes the cache for the DB requests
@@ -159,13 +224,31 @@ class Tx_Geocoding_Service_GeoService {
 	 * @return Cache Object
 	 */
 	protected function initializeCache() {
-		// Initialize the cache
-		try {
-			$cache = $GLOBALS['typo3CacheManager']->getCache('tx_geocoding');
-		} catch(t3lib_cache_exception_NoSuchCache $e) {
-			throw new Exception('Unable to load Cache! 1299944198');
+		// Create the cache (only needed for 4.5 and lower)
+		if (t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version) < '4006000') {
+
+	        t3lib_cache::initializeCachingFramework();
+	        try {
+	            $cacheInstance = $GLOBALS['typo3CacheManager']->getCache('tx_geocoding');
+	        } catch (t3lib_cache_exception_NoSuchCache $e) {
+	            $cacheInstance = $GLOBALS['typo3CacheFactory']->create(
+	                'tx_geocoding',
+	                $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['tx_geocoding']['frontend'],
+	                $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['tx_geocoding']['backend'],
+	                $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['tx_geocoding']['options']
+	            );
+	        }
+		} else {
+
+			// Initialize the cache
+			try {
+				$cacheInstance = $GLOBALS['typo3CacheManager']->getCache('tx_geocoding');
+			} catch(t3lib_cache_exception_NoSuchCache $e) {
+				throw new Exception('Unable to load Cache! 1299944198');
+			}
 		}
-		return $cache;
+
+		return $cacheInstance;
 	}
 
 	/**
