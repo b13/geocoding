@@ -30,6 +30,11 @@
 class Tx_Geocoding_Service_RadiusService {
 
 	/**
+	 * earth radius in kilometers
+	 */
+	protected $earthRadius = 6380;
+
+	/**
 	 * calculates the distance in kilometers between two coordinates
 	 *
 	 * @param array $coordinates1 an associative array with "latitude" and "longitude"
@@ -37,8 +42,7 @@ class Tx_Geocoding_Service_RadiusService {
 	 * @return float
 	 */
 	public function getDistance($coordinates1, $coordinates2) {
-		$distance = (3958 * 3.1415926 * sqrt(($coordinates2['latitude']-$coordinates1['latitude'])*($coordinates2['latitude']-$coordinates1['latitude']) + cos($coordinates2['latitude']/57.29578)*cos($coordinates1['latitude']/57.29578)*($coordinates2['longitude']-$coordinates1['longitude'])*($coordinates2['longitude']-$coordinates1['longitude']))/180);
-		$distance = $distance * 1.60934400061469;
+		$distance = ($this->earthRadius * 3.1415926 * sqrt(($coordinates2['latitude']-$coordinates1['latitude'])*($coordinates2['latitude']-$coordinates1['latitude']) + cos($coordinates2['latitude']/57.29578)*cos($coordinates1['latitude']/57.29578)*($coordinates2['longitude']-$coordinates1['longitude'])*($coordinates2['longitude']-$coordinates1['longitude']))/180);
 		return $distance;
 	}
 	
@@ -46,17 +50,19 @@ class Tx_Geocoding_Service_RadiusService {
 	 * fetches all records within a certain radius of given coordinates
 	 * see http://spinczyk.net/blog/2009/10/04/radius-search-with-google-maps-and-mysql/
 	 *
+	 * @param array $coordinates an associative array with "latitude" and "longitude" keys
+	 * @param integer $maxDistance the radius in kilometers
+	 * @param string $tableName the DB table that should be queried
+	 * @param string $latitudeField the DB field that holds the latitude coordinates
+	 * @param string $longitudeField the DB field that holds the longitude coordinates
 	 * @return array
 	 */
-	public function findAllDatabaseRecordsInRadius($coordinates, $tableName = 'pages', $maxDistance = 250) {
-
-			// earth radius in kilometers
-		$earthRadius = 6380;
+	public function findAllDatabaseRecordsInRadius($coordinates, $maxDistance = 250, $tableName = 'pages', $latitudeField = 'latitude', $longitudeField = 'longitude', $additionalFields = '') {
 		
-		$distanceSqlCalc = 'ACOS(SIN(RADIANS(latitude)) * SIN(RADIANS(' . $coordinates['latitude'] . ')) + COS(RADIANS(latitude)) * COS(RADIANS(' . $coordinates['latitude'] . ')) * COS(RADIANS(longitude) - RADIANS(' . $coordinates['longitude'] . '))) * ' . $earthRadius;
+		$distanceSqlCalc = 'ACOS(SIN(RADIANS(' . $latitudeField . ')) * SIN(RADIANS(' . $coordinates['latitude'] . ')) + COS(RADIANS(' . $latitudeField . ')) * COS(RADIANS(' . $coordinates['latitude'] . ')) * COS(RADIANS(' . $longitudeField . ') - RADIANS(' . $coordinates['longitude'] . '))) * ' . $this->earthRadius;
 
 		$records = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-			'uid, ' . $distanceSqlCalc . ' AS distance',
+			'uid, ' . $distanceSqlCalc . ' AS distance' . ($additionalFields ? ' , ' . $additionalFields : ''),
 			$tableName,
 			$distanceSqlCalc . ' < ' . $maxDistance,
 			'',	// group by
