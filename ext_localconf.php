@@ -11,7 +11,7 @@ if (!is_array($TYPO3_CONF_VARS['SYS']['caching']['cacheConfigurations']['tx_geoc
 	);
 }
 
-// Define state cache, if not already defined
+// Compatibility for 4.5
 if (t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version) < '4006000') {
 	$TYPO3_CONF_VARS['SYS']['useCachingFramework'] = '1';
 	$TYPO3_CONF_VARS['SYS']['caching']['cacheConfigurations']['tx_geocoding']['options'] = array(
@@ -19,5 +19,3 @@ if (t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version) < 
 		'tagsTable'  => 'tx_geocoding_tags',
 	);
 }
-
-

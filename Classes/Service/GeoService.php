@@ -36,15 +36,7 @@ class Tx_Geocoding_Service_GeoService {
 	/**
 	 * base URL to fetch the Coordinates (Latitude, Longitutde of a Address String
 	 */
-	protected $geocodingUrl = 'http://maps.google.com/maps/geo?sensor=false&oe=utf8&gl=en&output=csv';
-
-	/**
-	 * base URL to fetch all information about an address (add &address=...) 
-	 * see http://maps.googleapis.com/maps/api/geocode/json?sensor=true&address=70182,+Germany
-	 * for an example
-	 */
-	protected $baseApiUrl = 'http://maps.googleapis.com/maps/api/geocode/json?sensor=true';
-
+	protected $geocodingUrl = 'http://maps.googleapis.com/maps/api/geocode/json?language=en&sensor=false';
 
 	/**
 	 * set the google maps API key
@@ -56,11 +48,10 @@ class Tx_Geocoding_Service_GeoService {
 			$apikey = $geoCodingConfig['googleApiKey'];
 		}
 		$this->apikey = $apikey;
-		$this->geocodingUrl .= '&key=' . $apikey;
+		#$this->geocodingUrl .= '&key=' . $apikey;
 	}
 
 	/**
-	 * uses the "old" CSV query of Google
 	 * core functionality: asks google for the coordinates of an address
 	 * stores known addresses in a local cache
 	 *
@@ -88,18 +79,25 @@ class Tx_Geocoding_Service_GeoService {
 				// not in cache yet
 			if (!$cacheObject->has($cacheKey)) {
 		
-				$geocodingUrl = $this->geocodingUrl . '&q=' . urlencode($address);
+				$geocodingUrl = $this->geocodingUrl . '&address=' . urlencode($address);
 				$results = t3lib_div::getUrl($geocodingUrl);
+				$results = json_decode($results, TRUE);
 
-				list($loc, $accuracy, $latitude, $longitude) = explode(',', $results);
-
-				$results = array(
-					'accuracy'  => $accuracy,
-					'latitude'  => $latitude,
-					'longitude' => $longitude
-				);
+				$latitude = 0;
+				if (count($results['results']) > 0) {
+					$record = reset($results['results']);
+					$geometrics = $record['geometry'];
+					
+					$latitude = $geometrics['location']['lat'];
+					$longitude = $geometrics['location']['lng'];
+				}
 
 				if ($latitude != 0) {
+
+					$results = array(
+						'latitude'  => $latitude,
+						'longitude' => $longitude
+					);
 						// Now store the $result in cache and return
 					$cacheObject->set($cacheKey, $results, array(), $this->cacheTime);
 				}
@@ -109,7 +107,7 @@ class Tx_Geocoding_Service_GeoService {
 		}
 		return $results;
 	}
-	
+
 
 	/**
 	 * geocodes all missing records in a DB table and then stores the values
@@ -126,10 +124,10 @@ class Tx_Geocoding_Service_GeoService {
 			$tableName,
 			'deleted=0 AND
 			(' . $latitudeField . ' IS NULL OR ' . $latitudeField . '=0 OR ' . $latitudeField . '=0.00000000000
-				OR ' . $longitudeField . ' IS NULL OR ' . $longitudeField . '=0 OR ' . $longitudeField . '=0.00000000000) '  . $addWhereClause,
+				OR ' . $longitudeField . ' IS NULL OR ' . $longitudeField . '=0 OR ' . $longitudeField . '=0.00000000000)'  . $addWhereClause,
 			'',	// group by
 			'',	// order by
-			'100'	// limit
+			'500'	// limit
 		);
 
 		t3lib_div::loadTCA($tableName);
@@ -158,7 +156,7 @@ class Tx_Geocoding_Service_GeoService {
 						$tableName,
 						'uid=' . intval($record['uid']),
 						array(
-							$latitudeField => $coords['latitude'],
+							$latitudeField  => $coords['latitude'],
 							$longitudeField => $coords['longitude']
 						)
 					);
@@ -195,8 +193,6 @@ class Tx_Geocoding_Service_GeoService {
 				$geocodingUrl = $this->baseApiUrl . '&address=' . urlencode($address);
 				$results = t3lib_div::getUrl($geocodingUrl);
 				$results = json_decode($results);
-				var_dump($results);
-				exit;
 
 				$results = array(
 					'accuracy'  => $accuracy,
@@ -275,6 +271,7 @@ class Tx_Geocoding_Service_GeoService {
 			case 'BE':
 				$fullCountry = 'Belgium';
 			break;
+			case 'I':
 			case 'IT':
 				$fullCountry = 'Italy';
 			break;

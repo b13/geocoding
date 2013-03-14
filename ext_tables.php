@@ -3,7 +3,7 @@ if (!defined('TYPO3_MODE')) {
 	die ('Access denied.');
 }
 
-
+// compatibility for 4.5
 if (t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version) < '4006000') {
 
 	if (TYPO3_MODE == 'BE') {
@@ -22,4 +22,3 @@ if (t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version) < 
 		}
 	}
 }
-
