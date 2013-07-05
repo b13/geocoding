@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2012 b:dreizehn, Germany <typo3@b13.de>
+ *  (c) 2012-2013 Benjamin Mack, b:dreizehn, Germany <benjamin.mack@b13.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is

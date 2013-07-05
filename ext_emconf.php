@@ -11,11 +11,11 @@
 ########################################################################
 
 $EM_CONF[$_EXTKEY] = array(
-	'title' => 'Geocoding via Google Maps',
-	'description' => 'Provides services for google maps GeoCoding API.',
-	'category' => 'fe',
-	'author' => 'b:dreizehn GmbH',
-	'author_email' => 'typo3@b13.de',
+	'title' => 'Service: Geocoding via Google Maps',
+	'description' => 'Provides services for google maps GeoCoding API and radius search on the database.',
+	'category' => 'sv',
+	'author' => 'Benjamin Mack',
+	'author_email' => 'benjamin.mack@b13.de',
 	'shy' => '',
 	'dependencies' => '',
 	'conflicts' => '',
@@ -28,8 +28,8 @@ $EM_CONF[$_EXTKEY] = array(
 	'modify_tables' => '',
 	'clearCacheOnLoad' => 0,
 	'lockType' => '',
-	'author_company' => '',
-	'version' => '1.1.0',
+	'author_company' => 'b:dreizehn GmbH',
+	'version' => '1.1.2',
 	'constraints' => array(
 		'depends' => array(
 		),

@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2012 b:dreizehn, Germany <typo3@b13.de>
+ *  (c) 2012-2013 Benjamin Mack, b:dreizehn, Germany <benjamin.mack@b13.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -22,7 +22,8 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 /**
- * calculate the geo coordinates of an address
+ * calculate the geo coordinates of an address, using the googe geocoding
+ * API, an API key is needed, as this is a server-side process
  *
  * @package Tx_Geocoding
  * @subpackage Service
@@ -39,7 +40,11 @@ class Tx_Geocoding_Service_GeoService {
 	protected $geocodingUrl = 'http://maps.googleapis.com/maps/api/geocode/json?language=en&sensor=false';
 
 	/**
-	 * set the google maps API key
+	 * constructor method
+	 *
+	 * sets the google code API key
+	 *
+	 * @param string $apikey (optional) the API key from google, if empty, the default from the configuration is taken
 	 */
 	public function __construct($apikey = NULL) {
 			// load from extension configuration
@@ -63,9 +68,6 @@ class Tx_Geocoding_Service_GeoService {
 	 */
 	public function getCoordinatesForAddress($street = NULL, $zip = NULL, $city = NULL, $country = 'Germany') {
 		$results = NULL;
-
-			// get a full name (e.g. "Germany") from a country code
-		$country = $this->getCountryFromPrefix($country);
 	
 		$address = $street . ', ' . $zip . ' ' . $city . ', ' . $country;
 		$address = trim($address, ', ');	// remove trailing commas and whitespaces
@@ -171,12 +173,10 @@ class Tx_Geocoding_Service_GeoService {
 	/**
 	 * fetches the city of a ZIP
 	 * uses the JSON query string
+	 * @todo: switch parameters
 	 */
 	public function getCityFromZip($zip, $country = 'Germany', $street = NULL) {
 		$results = NULL;
-
-			// get a full name (e.g. "Germany") from a country code
-		$country = $this->getCountryFromPrefix($country);
 	
 		$address = $street . ', ' . $zip . ', ' . $country;
 		$address = trim($address, ', ');	// remove trailing commas and whitespaces
@@ -246,43 +246,4 @@ class Tx_Geocoding_Service_GeoService {
 
 		return $cacheInstance;
 	}
-
-	/**
-	 * helper function to get the international common name
-	 * to use for google coding
-	 */
-	protected function getCountryFromPrefix($country) {
-		switch ($country) {
-			case 'A':
-			case 'AT':
-				$fullCountry = 'Austria';
-			break;
-			case 'D':
-			case 'DE':
-				$fullCountry = 'Germany';
-			break;
-			case 'CH':
-				$fullCountry = 'Switzerland';
-			break;
-			case 'UK':
-				$fullCountry = 'Great Britain';
-			break;
-			case 'B':
-			case 'BE':
-				$fullCountry = 'Belgium';
-			break;
-			case 'I':
-			case 'IT':
-				$fullCountry = 'Italy';
-			break;
-			case 'L':
-			case 'LUX':
-				$fullCountry = 'Luxemburg';
-			break;
-			default:
-				$fullCountry = $country;
-		}
-		return $fullCountry;
-	}
-
 }
