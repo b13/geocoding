@@ -19,7 +19,7 @@ Fetch a google API key (https://code.google.com/apis/console) and add it to the 
 
 How to use
 ----------
-Instantiate the class via t3lib_div::makeInstance() or the object manager in your TYPO3 extension. Then use the public methods.
+Instantiate the class via GeneralUtility::makeInstance() or the object manager in your TYPO3 extension. Then use the public methods.
 
 GeoService
 ----------
@@ -29,7 +29,7 @@ The extension provides you with a clean PHP/TYPO3 extension abstraction to fetch
 
 If you need to query user input, a JavaScript API is probably the best way to do so. However, it can be done via JS as well, by calling GeoService->getCoordinatesForAddress($street = NULL, $zip = NULL, $city = NULL, $country = 'Germany')
 
-	$geoServiceObject = t3lib_div::makeInstance('Tx_Geocoding_Service_GeoService');
+	$geoServiceObject = GeneralUtility::makeInstance('B13\\Geocoding\\Service\\GeoService');
 	$coordinates = $geoServiceObject->getCoordinatesForAddress('Breitscheidstr. 65', 70178, 'Stuttgart', 'Germany');
 
 The method does internal caching of the same requests.
