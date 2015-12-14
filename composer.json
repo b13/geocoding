@@ -3,10 +3,14 @@
     "type": "typo3-cms-extension",
     "description": "Services for using geocoding from Google inside TYPO3 database records",
     "homepage": "https://github.com/b13/t3ext-geocoding",
-    "license": ["GPL2+"],
-    "keywords": ["TYPO3 CMS", "Google Geocdoing"],
+    "license": ["GPLv2+"],
+    "keywords": ["TYPO3 CMS", "TYPO3" "Google Geocoding"],
     "support": {
         "support": "https://github.com/b13/t3ext-geocoding"
+    },
+    "require": {
+        "php": ">=5.3.9",
+	"typo3/cms": "~6.2.0,<8.0.0"
     },
     "replace": {
         "geocoding": "self.version"
