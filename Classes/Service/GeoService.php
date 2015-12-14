@@ -130,8 +130,8 @@ class GeoService
             '*',
             $tableName,
             'deleted=0 AND
-			('.$latitudeField.' IS NULL OR '.$latitudeField.'=0 OR '.$latitudeField.'=0.00000000000
-				OR '.$longitudeField.' IS NULL OR '.$longitudeField.'=0 OR '.$longitudeField.'=0.00000000000)'.$addWhereClause,
+            ('.$latitudeField.' IS NULL OR '.$latitudeField.'=0 OR '.$latitudeField.'=0.00000000000
+                OR '.$longitudeField.' IS NULL OR '.$longitudeField.'=0 OR '.$longitudeField.'=0.00000000000)'.$addWhereClause,
             '',    // group by
             '',    // order by
             '500'    // limit
@@ -153,17 +153,19 @@ class GeoService
                     }
                 }
                     // do the geocoding
-                $coords = $this->getCoordinatesForAddress($record[$streetField], $record[$zipField], $record[$cityField], $country);
-                if ($coords) {
-                    // update the record to fill in the latitude and longitude values in the DB
-                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-                        $tableName,
-                        'uid='.intval($record['uid']),
-                        array(
-                            $latitudeField => $coords['latitude'],
-                            $longitudeField => $coords['longitude'],
-                        )
-                    );
+                if (!empty($record[$zipField]) || !empty($record[$cityField])) {
+                    $coords = $this->getCoordinatesForAddress($record[$streetField], $record[$zipField], $record[$cityField], $country);
+                    if ($coords) {
+                        // update the record to fill in the latitude and longitude values in the DB
+                        $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+                            $tableName,
+                            'uid='.intval($record['uid']),
+                            array(
+                                $latitudeField => $coords['latitude'],
+                                $longitudeField => $coords['longitude'],
+                            )
+                        );
+                    }
                 }
             }
         }
