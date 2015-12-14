@@ -1,0 +1,19 @@
+{
+    "name": "b13/geocoding",
+    "type": "typo3-cms-extension",
+    "description": "Services for using geocoding from Google inside TYPO3 database records",
+    "homepage": "https://github.com/b13/t3ext-geocoding",
+    "license": ["MIT"],
+    "keywords": ["TYPO3 CMS", "Google Geocdoing"],
+    "support": {
+        "support": "https://github.com/b13/t3ext-geocoding"
+    },
+    "replace": {
+        "geocoding": "self.version"
+    },
+    "autoload": {
+        "psr-4": {
+            "B13\\Geocoding\\": "Classes/"
+         }
+    }
+}

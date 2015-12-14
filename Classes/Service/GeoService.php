@@ -1,4 +1,6 @@
 <?php
+namespace B13\Geocoding\Service;
+
 /***************************************************************
  *  Copyright notice
  *
@@ -21,14 +23,14 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
+use \TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /**
  * calculate the geo coordinates of an address, using the googe geocoding
  * API, an API key is needed, as this is a server-side process
- *
- * @package Tx_Geocoding
- * @subpackage Service
  */
-class Tx_Geocoding_Service_GeoService {
+class GeoService {
 
 	protected $apikey = '';
 
@@ -82,7 +84,7 @@ class Tx_Geocoding_Service_GeoService {
 			if (!$cacheObject->has($cacheKey)) {
 		
 				$geocodingUrl = $this->geocodingUrl . '&address=' . urlencode($address);
-				$results = t3lib_div::getUrl($geocodingUrl);
+				$results = GeneralUtility::getUrl($geocodingUrl);
 				$results = json_decode($results, TRUE);
 
 				$latitude = 0;
@@ -131,8 +133,6 @@ class Tx_Geocoding_Service_GeoService {
 			'',	// order by
 			'500'	// limit
 		);
-
-		t3lib_div::loadTCA($tableName);
 
 		if (count($records) > 0) {
 			foreach ($records as $record) {
@@ -191,7 +191,7 @@ class Tx_Geocoding_Service_GeoService {
 			if (!$cacheObject->has($cacheKey)) {
 		
 				$geocodingUrl = $this->baseApiUrl . '&address=' . urlencode($address);
-				$results = t3lib_div::getUrl($geocodingUrl);
+				$results = GeneralUtility::getUrl($geocodingUrl);
 				$results = json_decode($results);
 
 				$results = array(
@@ -211,39 +211,17 @@ class Tx_Geocoding_Service_GeoService {
 		return $results;
 	}
 
-
-
-
 	/**
-	 * initializes the cache for the DB requests
+	 * Initializes the cache for the DB requests
 	 *
 	 * @return Cache Object
 	 */
 	protected function initializeCache() {
-		// Create the cache (only needed for 4.5 and lower)
-		if (t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version) < '4006000') {
-
-	        t3lib_cache::initializeCachingFramework();
-	        try {
-	            $cacheInstance = $GLOBALS['typo3CacheManager']->getCache('tx_geocoding');
-	        } catch (t3lib_cache_exception_NoSuchCache $e) {
-	            $cacheInstance = $GLOBALS['typo3CacheFactory']->create(
-	                'tx_geocoding',
-	                $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['tx_geocoding']['frontend'],
-	                $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['tx_geocoding']['backend'],
-	                $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['tx_geocoding']['options']
-	            );
-	        }
-		} else {
-
-			// Initialize the cache
-			try {
-				$cacheInstance = $GLOBALS['typo3CacheManager']->getCache('tx_geocoding');
-			} catch(t3lib_cache_exception_NoSuchCache $e) {
-				throw new Exception('Unable to load Cache! 1299944198');
-			}
+		try {
+			$cacheManager = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheMananger');
+			return $cacheManager->getCache('geocoding');
+		} catch(\TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException $e) {
+			throw new \RuntimeException('Unable to load Cache! 1299944198');
 		}
-
-		return $cacheInstance;
 	}
 }

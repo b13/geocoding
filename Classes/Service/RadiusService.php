@@ -1,4 +1,5 @@
 <?php
+namespace B13\Geocoding\Service;
 /***************************************************************
  *  Copyright notice
  *
@@ -21,13 +22,14 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
+use \TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /**
  * calculate the radius between two addresses etc
  *
- * @package Tx_Geocoding
- * @subpackage Service
  */
-class Tx_Geocoding_Service_RadiusService {
+class RadiusService {
 
 	/**
 	 * earth radius in kilometers
