@@ -40,7 +40,7 @@ class GeoService
     /**
      * base URL to fetch the Coordinates (Latitude, Longitutde of a Address String.
      */
-    protected $geocodingUrl = 'http://maps.googleapis.com/maps/api/geocode/json?language=en&sensor=false';
+    protected $geocodingUrl = 'http://maps.googleapis.com/maps/api/geocode/json?language=de&sensor=false';
 
     /**
      * constructor method.
