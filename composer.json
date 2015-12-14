@@ -4,7 +4,7 @@
     "description": "Services for using geocoding from Google inside TYPO3 database records",
     "homepage": "https://github.com/b13/t3ext-geocoding",
     "license": ["GPLv2+"],
-    "keywords": ["TYPO3 CMS", "TYPO3" "Google Geocoding"],
+    "keywords": ["TYPO3 CMS", "TYPO3", "Google Geocoding"],
     "support": {
         "support": "https://github.com/b13/t3ext-geocoding"
     },
