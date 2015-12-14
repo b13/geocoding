@@ -10,7 +10,7 @@
     },
     "require": {
         "php": ">=5.3.9",
-	"typo3/cms": "~6.2.0,<8.0.0"
+	"typo3/cms": ">6.2.0 <8.0.0"
     },
     "replace": {
         "geocoding": "self.version"
