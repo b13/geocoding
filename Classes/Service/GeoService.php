@@ -224,7 +224,7 @@ class GeoService
     protected function initializeCache()
     {
         try {
-            $cacheManager = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheMananger');
+            $cacheManager = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager');
 
             return $cacheManager->getCache('geocoding');
         } catch (\TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException $e) {
