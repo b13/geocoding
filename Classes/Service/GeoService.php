@@ -57,7 +57,7 @@ class GeoService
             $apikey = $geoCodingConfig['googleApiKey'];
         }
         $this->apikey = $apikey;
-        #$this->geocodingUrl .= '&key=' . $apikey;
+        //$this->geocodingUrl .= '&key=' . $apikey;
     }
 
     /**
@@ -75,18 +75,18 @@ class GeoService
     {
         $results = null;
 
-        $address = $street.', '.$zip.' '.$city.', '.$country;
+        $address = $street . ', ' . $zip . ' ' . $city . ', ' . $country;
         $address = trim($address, ', ');    // remove trailing commas and whitespaces
 
         if ($address) {
             $cacheObject = $this->initializeCache();
 
                 // create the cache key
-            $cacheKey = 'geocode-'.strtolower(str_replace(' ', '-', preg_replace('/[^0-9a-zA-Z ]/m', '', $address)));
+            $cacheKey = 'geocode-' . strtolower(str_replace(' ', '-', preg_replace('/[^0-9a-zA-Z ]/m', '', $address)));
 
                 // not in cache yet
             if (!$cacheObject->has($cacheKey)) {
-                $geocodingUrl = $this->geocodingUrl.'&address='.urlencode($address);
+                $geocodingUrl = $this->geocodingUrl . '&address=' . urlencode($address);
                 $results = GeneralUtility::getUrl($geocodingUrl);
                 $results = json_decode($results, true);
 
@@ -100,12 +100,12 @@ class GeoService
                 }
 
                 if ($latitude != 0) {
-                    $results = array(
+                    $results = [
                         'latitude' => $latitude,
                         'longitude' => $longitude,
-                    );
+                    ];
                         // Now store the $result in cache and return
-                    $cacheObject->set($cacheKey, $results, array(), $this->cacheTime);
+                    $cacheObject->set($cacheKey, $results, [], $this->cacheTime);
                 }
             } else {
                 $results = $cacheObject->get($cacheKey);
@@ -130,8 +130,8 @@ class GeoService
             '*',
             $tableName,
             'deleted=0 AND
-            ('.$latitudeField.' IS NULL OR '.$latitudeField.'=0 OR '.$latitudeField.'=0.00000000000
-                OR '.$longitudeField.' IS NULL OR '.$longitudeField.'=0 OR '.$longitudeField.'=0.00000000000)'.$addWhereClause,
+            (' . $latitudeField . ' IS NULL OR ' . $latitudeField . '=0 OR ' . $latitudeField . '=0.00000000000
+                OR ' . $longitudeField . ' IS NULL OR ' . $longitudeField . '=0 OR ' . $longitudeField . '=0.00000000000)' . $addWhereClause,
             '',    // group by
             '',    // order by
             '500'    // limit
@@ -159,11 +159,11 @@ class GeoService
                         // update the record to fill in the latitude and longitude values in the DB
                         $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
                             $tableName,
-                            'uid='.intval($record['uid']),
-                            array(
+                            'uid=' . intval($record['uid']),
+                            [
                                 $latitudeField => $coords['latitude'],
                                 $longitudeField => $coords['longitude'],
-                            )
+                            ]
                         );
                     }
                 }
@@ -183,30 +183,30 @@ class GeoService
     {
         $results = null;
 
-        $address = $street.', '.$zip.', '.$country;
+        $address = $street . ', ' . $zip . ', ' . $country;
         $address = trim($address, ', ');    // remove trailing commas and whitespaces
 
         if ($address) {
             $cacheObject = $this->initializeCache();
 
                 // create the cache key
-            $cacheKey = 'geocodecityfromzip-'.strtolower(str_replace(' ', '-', preg_replace('/[^0-9a-zA-Z ]/m', '', $address)));
+            $cacheKey = 'geocodecityfromzip-' . strtolower(str_replace(' ', '-', preg_replace('/[^0-9a-zA-Z ]/m', '', $address)));
 
                 // not in cache yet
             if (!$cacheObject->has($cacheKey)) {
-                $geocodingUrl = $this->baseApiUrl.'&address='.urlencode($address);
+                $geocodingUrl = $this->baseApiUrl . '&address=' . urlencode($address);
                 $results = GeneralUtility::getUrl($geocodingUrl);
                 $results = json_decode($results);
 
-                $results = array(
+                $results = [
                     'accuracy' => $accuracy,
                     'latitude' => $latitude,
                     'longitude' => $longitude,
-                );
+                ];
 
                 if ($latitude != 0) {
                     // Now store the $result in cache and return
-                    $cacheObject->set($cacheKey, $results, array(), $this->cacheTime);
+                    $cacheObject->set($cacheKey, $results, [], $this->cacheTime);
                 }
             } else {
                 $results = $cacheObject->get($cacheKey);
@@ -224,11 +224,11 @@ class GeoService
     protected function initializeCache()
     {
         try {
-            $cacheManager = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager');
+            $cacheManager = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Cache\CacheManager::class);
 
             return $cacheManager->getCache('geocoding');
         } catch (\TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException $e) {
-            throw new \RuntimeException('Unable to load Cache! 1299944198');
+            throw new \RuntimeException('Unable to load Cache!', 1487138924);
         }
     }
 }

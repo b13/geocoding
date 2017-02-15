@@ -76,12 +76,12 @@ class RadiusService
      */
     public function findAllDatabaseRecordsInRadius($coordinates, $maxDistance = 250, $tableName = 'pages', $latitudeField = 'latitude', $longitudeField = 'longitude', $additionalFields = '')
     {
-        $distanceSqlCalc = 'ACOS(SIN(RADIANS('.$latitudeField.')) * SIN(RADIANS('.$coordinates['latitude'].')) + COS(RADIANS('.$latitudeField.')) * COS(RADIANS('.$coordinates['latitude'].')) * COS(RADIANS('.$longitudeField.') - RADIANS('.$coordinates['longitude'].'))) * '.$this->earthRadius;
+        $distanceSqlCalc = 'ACOS(SIN(RADIANS(' . $latitudeField . ')) * SIN(RADIANS(' . $coordinates['latitude'] . ')) + COS(RADIANS(' . $latitudeField . ')) * COS(RADIANS(' . $coordinates['latitude'] . ')) * COS(RADIANS(' . $longitudeField . ') - RADIANS(' . $coordinates['longitude'] . '))) * ' . $this->earthRadius;
 
         $records = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-            'uid, '.$distanceSqlCalc.' AS distance'.($additionalFields ? ' , '.$additionalFields : ''),
+            'uid, ' . $distanceSqlCalc . ' AS distance' . ($additionalFields ? ' , ' . $additionalFields : ''),
             $tableName,
-            $distanceSqlCalc.' < '.$maxDistance,
+            $distanceSqlCalc . ' < ' . $maxDistance,
             '',    // group by
             'distance ASC'
         );
