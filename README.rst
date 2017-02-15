@@ -6,7 +6,7 @@ Provides services for querying Google Maps GeoCoding API v3 in your own extensio
 * Extension Key: geocoding
 * Author: Benjamin Mack, b:dreizehn GmbH, 2012-2013
 * Licensed under: GPL 2+
-* Required TYPO3 4.5+ with the caching framework enabled
+* Required TYPO3 6.2+
 * All code can be found and developed on github: 
 
 Introduction
@@ -29,7 +29,7 @@ The extension provides you with a clean PHP/TYPO3 extension abstraction to fetch
 
 If you need to query user input, a JavaScript API is probably the best way to do so. However, it can be done via JS as well, by calling GeoService->getCoordinatesForAddress($street = NULL, $zip = NULL, $city = NULL, $country = 'Germany')
 
-	$geoServiceObject = GeneralUtility::makeInstance('B13\\Geocoding\\Service\\GeoService');
+	$geoServiceObject = GeneralUtility::makeInstance(\B13\Geocoding\Service\GeoService::class);
 	$coordinates = $geoServiceObject->getCoordinatesForAddress('Breitscheidstr. 65', 70178, 'Stuttgart', 'Germany');
 
 The method does internal caching of the same requests.
