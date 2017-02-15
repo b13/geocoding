@@ -9,8 +9,11 @@
         "support": "https://github.com/b13/t3ext-geocoding"
     },
     "require": {
-        "php": ">=5.3.9",
-	"typo3/cms": ">6.2.0 <8.0.0"
+        "php": ">=5.5.0 || >=7.0 <7.2",
+	"typo3/cms": "^6.2.0 || <9.0"
+    },
+    "require-dev": {
+	"friendsofphp/php-cs-fixer": "^2.1"
     },
     "replace": {
         "geocoding": "self.version"
