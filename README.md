@@ -83,7 +83,7 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks'][\MyVendor\MyExte
     'title'            => 'Geocoding of address records',
     'description'      => 'Check all tt_address records for geocoding information and write them into the fields'
 ];
-
+```
 
 RadiusService
 -------------
