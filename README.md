@@ -4,10 +4,10 @@ TYPO3 Extension: Geocoding
 Provides services for querying Google Maps GeoCoding API v3 in your own extensions.
 
 * Extension Key: geocoding
-* Author: Benjamin Mack, b:dreizehn GmbH, 2012-2013
+* Author: Benjamin Mack, b:dreizehn GmbH, 2012-2017
 * Licensed under: GPL 2+
 * Required TYPO3 6.2+
-* All code can be found and developed on github: 
+* All code can be found and developed on github: https://github.com/b13/t3ext-geocoding/
 
 Introduction
 ------------
@@ -30,7 +30,7 @@ The extension provides you with a clean PHP/TYPO3 extension abstraction to fetch
 If you need to query user input, a JavaScript API is probably the best way to do so. However, it can be done via JS as well, by calling GeoService->getCoordinatesForAddress($street = NULL, $zip = NULL, $city = NULL, $country = 'Germany')
 
 	$geoServiceObject = GeneralUtility::makeInstance(\B13\Geocoding\Service\GeoService::class);
-	$coordinates = $geoServiceObject->getCoordinatesForAddress('Breitscheidstr. 65', 70178, 'Stuttgart', 'Germany');
+	$coordinates = $geoServiceObject->getCoordinatesForAddress('Breitscheidstr. 65', 70176, 'Stuttgart', 'Germany');
 
 The method does internal caching of the same requests.
 
@@ -39,6 +39,50 @@ The method does internal caching of the same requests.
 The method "GeoService->calculateCoordinatesForAllRecordsInTable($tableName, $latitudeField, $longitudeField, $streetField, $zipField, $cityField, $countryField, $addWhereClause)" allows you to bulk-encode latitude and longitude fields for existing addresses. The call can easily be built inside a Scheduler Task.
 
 This you can fetch the information about an address of a DB record (e.g. tt_address) and store the data in the database table, given that you add two new fields latitude and longitute to that target table in your extension (no TCA information required for that).
+
+### Example: Using GeoService as a Scheduler Task for tt_address
+
+Put this into `EXT:my_extension/Classes/Task/GeocodingTask.php`:
+
+```php
+<?php
+namespace MyVendor\MyExtension\Task;
+
+/**
+ * Class to be called by the scheduler to
+ * find geocoding coordinates for all tt_address records
+ */
+class GeocodingTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask
+{
+    /**
+     * Function executed from the Scheduler.
+     */
+    public function execute()
+    {
+        /** @var \B13\Geocoding\Service\GeoService $geocodingService */
+        $geocodingService = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\B13\Geocoding\Service\GeoService::class);
+        $geocodingService->calculateCoordinatesForAllRecordsInTable(
+            'tt_address',
+            'latitude',
+            'longitude',
+            'address',
+            'zip',
+            'city',
+            'country'
+        );
+        return true;
+    }
+}
+```
+
+And also register this class within `ext_localconf.php` of your extension:
+
+```php
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks'][\MyVendor\MyExtension\Task\GeocodingTask::class] = [
+    'extension'        => 'myextension',
+    'title'            => 'Geocoding of address records',
+    'description'      => 'Check all tt_address records for geocoding information and write them into the fields'
+];
 
 
 RadiusService
