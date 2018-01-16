@@ -5,7 +5,7 @@ namespace B13\Geocoding\Service;
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2012-2013 Benjamin Mack, b:dreizehn, Germany <benjamin.mack@b13.de>
+ *  (c) 2012-2018 Benjamin Mack, b:dreizehn, Germany <benjamin.mack@b13.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -24,6 +24,10 @@ namespace B13\Geocoding\Service;
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Expression\ExpressionBuilder;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * calculate the radius between two addresses etc.
@@ -76,16 +80,23 @@ class RadiusService
      */
     public function findAllDatabaseRecordsInRadius($coordinates, $maxDistance = 250, $tableName = 'pages', $latitudeField = 'latitude', $longitudeField = 'longitude', $additionalFields = '')
     {
-        $distanceSqlCalc = 'ACOS(SIN(RADIANS(' . $latitudeField . ')) * SIN(RADIANS(' . $coordinates['latitude'] . ')) + COS(RADIANS(' . $latitudeField . ')) * COS(RADIANS(' . $coordinates['latitude'] . ')) * COS(RADIANS(' . $longitudeField . ') - RADIANS(' . $coordinates['longitude'] . '))) * ' . $this->earthRadius;
 
-        $records = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-            'uid, ' . $distanceSqlCalc . ' AS distance' . ($additionalFields ? ' , ' . $additionalFields : ''),
-            $tableName,
-            $distanceSqlCalc . ' < ' . $maxDistance,
-            '',    // group by
-            'distance ASC'
-        );
+        $fields = GeneralUtility::trimExplode(',', 'uid,' . $additionalFields, true);
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($tableName);
 
-        return $records;
+        $distanceSqlCalc = 'ACOS(SIN(RADIANS(' . $queryBuilder->quoteIdentifier($latitudeField) . ')) * SIN(RADIANS(' . (float)$coordinates['latitude'] . ')) + COS(RADIANS(' . $queryBuilder->quoteIdentifier($latitudeField) . ')) * COS(RADIANS(' . (float)$coordinates['latitude'] . ')) * COS(RADIANS(' . $queryBuilder->quoteIdentifier($longitudeField) . ') - RADIANS(' . (float)$coordinates['longitude'] . '))) * ' . $this->earthRadius;
+
+        return $queryBuilder
+            ->select(...$fields)
+            ->addSelectLiteral(
+                $distanceSqlCalc
+            )
+            ->from($tableName)
+            ->where(
+                $queryBuilder->expr()->comparison($distanceSqlCalc, ExpressionBuilder::LT, $maxDistance)
+            )
+            ->orderBy('distance')
+            ->execute()
+            ->fetchAll();
     }
 }

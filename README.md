@@ -3,9 +3,9 @@
 Provides services for querying Google Maps GeoCoding API v3 in your own extensions.
 
 * Extension Key: geocoding
-* Author: Benjamin Mack, b:dreizehn GmbH, 2012-2017
+* Author: Benjamin Mack, b:dreizehn GmbH, 2012-2018
 * Licensed under: GPL 2+
-* Required TYPO3 6.2+
+* Required TYPO3 8.7+ (see older versions of EXT:geocoding for support for previous TYPO3 versions)
 * All code can be found and developed on github: https://github.com/b13/t3ext-geocoding/
 
 ## Introduction

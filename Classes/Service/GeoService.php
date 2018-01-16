@@ -5,7 +5,7 @@ namespace B13\Geocoding\Service;
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2012-2013 Benjamin Mack, b:dreizehn, Germany <benjamin.mack@b13.de>
+ *  (c) 2012-2018 Benjamin Mack, b:dreizehn, Germany <benjamin.mack@b13.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -25,10 +25,14 @@ namespace B13\Geocoding\Service;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryHelper;
+use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * calculate the geo coordinates of an address, using the googe geocoding
+ * Calculate the geo coordinates of an address, using the googe geocoding
  * API, an API key is needed, as this is a server-side process.
  */
 class GeoService
@@ -124,23 +128,37 @@ class GeoService
      */
     public function calculateCoordinatesForAllRecordsInTable($tableName, $latitudeField = 'latitude', $longitudeField = 'longitude', $streetField = 'street', $zipField = 'zip', $cityField = 'city', $countryField = 'country', $addWhereClause = '')
     {
+        // Fetch all records without latitude/longitude
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($tableName);
+        $queryBuilder = $connection->createQueryBuilder();
+        $queryBuilder->getRestrictions()
+            ->removeAll()
+            ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
+        $queryBuilder
+            ->select('*')
+            ->from($tableName)
+            ->where(
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->isNull($latitudeField),
+                    $queryBuilder->expr()->eq($latitudeField, $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
+                    $queryBuilder->expr()->eq($latitudeField, 0.00000000000),
+                    $queryBuilder->expr()->isNull($longitudeField),
+                    $queryBuilder->expr()->eq($longitudeField, $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
+                    $queryBuilder->expr()->eq($longitudeField, 0.00000000000)
+                )
+            )
+            ->setMaxResults(500);
 
-            // fetch all records without latitude/longitude
-        $records = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-            '*',
-            $tableName,
-            'deleted=0 AND
-            (' . $latitudeField . ' IS NULL OR ' . $latitudeField . '=0 OR ' . $latitudeField . '=0.00000000000
-                OR ' . $longitudeField . ' IS NULL OR ' . $longitudeField . '=0 OR ' . $longitudeField . '=0.00000000000)' . $addWhereClause,
-            '',    // group by
-            '',    // order by
-            '500'    // limit
-        );
+        if (!empty($addWhereClause)) {
+            $queryBuilder->andWhere(QueryHelper::stripLogicalOperatorPrefix($addWhereClause));
+        }
+
+        $records = $queryBuilder->execute()->fetchAll();
 
         if (count($records) > 0) {
             foreach ($records as $record) {
                 $country = $record[$countryField];
-                    // resolve the label for the country
+                // resolve the label for the country
                 if ($GLOBALS['TCA'][$tableName]['columns'][$countryField]['config']['type'] == 'select') {
                     foreach ($GLOBALS['TCA'][$tableName]['columns'][$countryField]['config']['items'] as $itm) {
                         if ($itm[1] == $country) {
@@ -156,13 +174,15 @@ class GeoService
                 if (!empty($record[$zipField]) || !empty($record[$cityField])) {
                     $coords = $this->getCoordinatesForAddress($record[$streetField], $record[$zipField], $record[$cityField], $country);
                     if ($coords) {
-                        // update the record to fill in the latitude and longitude values in the DB
-                        $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+                        // Update the record to fill in the latitude and longitude values in the DB
+                        $connection->update(
                             $tableName,
-                            'uid=' . intval($record['uid']),
                             [
                                 $latitudeField => $coords['latitude'],
                                 $longitudeField => $coords['longitude'],
+                            ],
+                            [
+                                'uid' => $record['uid']
                             ]
                         );
                     }
@@ -219,7 +239,7 @@ class GeoService
     /**
      * Initializes the cache for the DB requests.
      *
-     * @return Cache Object
+     * @return FrontendInterface Cache Object
      */
     protected function initializeCache()
     {
