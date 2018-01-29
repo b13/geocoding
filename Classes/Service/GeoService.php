@@ -43,14 +43,13 @@ class GeoService
 
     /**
      * base URL to fetch the Coordinates (Latitude, Longitutde of a Address String.
+     * TODO: Language shall be configurable
      */
-    protected $geocodingUrl = 'http://maps.googleapis.com/maps/api/geocode/json?language=de&sensor=false';
+    protected $geocodingUrl = 'https://maps.googleapis.com/maps/api/geocode/json?language=de&sensor=false';
 
     /**
      * constructor method.
-     *
      * sets the google code API key
-     *
      * @param string $apikey (optional) the API key from google, if empty, the default from the configuration is taken
      */
     public function __construct($apikey = null)
@@ -61,7 +60,7 @@ class GeoService
             $apikey = $geoCodingConfig['googleApiKey'];
         }
         $this->apikey = $apikey;
-        //$this->geocodingUrl .= '&key=' . $apikey;
+        $this->geocodingUrl .= '&key=' . $apikey;
     }
 
     /**
@@ -73,7 +72,7 @@ class GeoService
      * @param $city
      * @param $country
      *
-     * @return array an array with accuracy, latitude and longitude
+     * @return array|null an array with long name, latitude and longitude or null if nothing was found
      */
     public function getCoordinatesForAddress($street = null, $zip = null, $city = null, $country = 'Germany')
     {
@@ -89,26 +88,11 @@ class GeoService
             $cacheKey = 'geocode-' . strtolower(str_replace(' ', '-', preg_replace('/[^0-9a-zA-Z ]/m', '', $address)));
 
                 // not in cache yet
-            if (!$cacheObject->has($cacheKey)) {
+            if (false === $cacheObject->has($cacheKey)) {
                 $geocodingUrl = $this->geocodingUrl . '&address=' . urlencode($address);
-                $results = GeneralUtility::getUrl($geocodingUrl);
-                $results = json_decode($results, true);
-
-                $latitude = 0;
-                if (count($results['results']) > 0) {
-                    $record = reset($results['results']);
-                    $geometrics = $record['geometry'];
-
-                    $latitude = $geometrics['location']['lat'];
-                    $longitude = $geometrics['location']['lng'];
-                }
-
-                if ($latitude != 0) {
-                    $results = [
-                        'latitude' => $latitude,
-                        'longitude' => $longitude,
-                    ];
-                        // Now store the $result in cache and return
+                $results = $this->getCoordinatesFromApi($geocodingUrl);
+                if ($results !== null) {
+                    // Now store the $result in cache and return
                     $cacheObject->set($cacheKey, $results, [], $this->cacheTime);
                 }
             } else {
@@ -116,6 +100,57 @@ class GeoService
             }
         }
 
+        return $results;
+    }
+
+    /**
+     * This function will get coordinates by a given place_id of google
+     * @param string $placeId The Google place_id of the location
+     * @return array|null An array holding long name, lat and long for the given placeId or null if nothing was found
+     */
+    public function getCoordinatesFromPlaceId($placeId) {
+        $results = null;
+
+        $cacheObject = $this->initializeCache();
+
+        // create the cache key
+        $cacheKey = 'geocodeplace-' . $placeId;
+
+        // not in cache yet
+        if (false === $cacheObject->has($cacheKey)) {
+            $geocodingUrl = $this->geocodingUrl . '&place_id=' . urlencode($placeId);
+            $results = $this->getCoordinatesFromApi($geocodingUrl);
+            if ($results !== null) {
+                // Now store the $result in cache and return
+                $cacheObject->set($cacheKey, $results, [], $this->cacheTime);
+            }
+        } else {
+            $results = $cacheObject->get($cacheKey);
+        }
+
+        return $results;
+
+    }
+
+    /**
+     * This function will try to fetch coordinates from Google and return null or an array with the coordinates
+     * @param string $fullGeocodingUri The complete Geocoding URL for the API request
+     * @return array|null long name, latitute and longitude or null if nothing was found
+     */
+    protected function getCoordinatesFromApi($fullGeocodingUri) {
+        $results = null;
+        $apiResult = json_decode(GeneralUtility::getUrl($fullGeocodingUri), true);
+        if (count($apiResult['results']) > 0) {
+            $record = reset($apiResult['results']);
+            $geometrics = $record['geometry'];
+            if(false === empty($geometrics['location']['lat'])) {
+                $results = [
+                    'long_name' => $record['address_components'][0]['long_name'],
+                    'latitude' => $geometrics['location']['lat'],
+                    'longitude' => $geometrics['location']['lng'],
+                ];
+            }
+        }
         return $results;
     }
 
