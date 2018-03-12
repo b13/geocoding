@@ -44,7 +44,7 @@ class GeoService
     /**
      * base URL to fetch the Coordinates (Latitude, Longitutde of a Address String.
      */
-    protected $geocodingUrl = 'http://maps.googleapis.com/maps/api/geocode/json?language=de&sensor=false';
+    protected $geocodingUrl = 'https://maps.googleapis.com/maps/api/geocode/json?language=de&sensor=false';
 
     /**
      * constructor method.
@@ -61,7 +61,7 @@ class GeoService
             $apikey = $geoCodingConfig['googleApiKey'];
         }
         $this->apikey = $apikey;
-        //$this->geocodingUrl .= '&key=' . $apikey;
+        $this->geocodingUrl .= '&key=' . $apikey;
     }
 
     /**
