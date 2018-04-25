@@ -61,7 +61,9 @@ class GeoService
             $apikey = $geoCodingConfig['googleApiKey'];
         }
         $this->apikey = $apikey;
-        $this->geocodingUrl .= '&key=' . $apikey;
+        if (!empty($this->apikey)) {
+            $this->geocodingUrl .= '&key=' . $apikey;
+        }
     }
 
     /**
