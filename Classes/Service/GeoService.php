@@ -25,6 +25,7 @@ namespace B13\Geocoding\Service;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryHelper;
@@ -37,9 +38,15 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class GeoService
 {
-    protected $apikey = '';
-
+    /**
+     * @var int
+     */
     protected $cacheTime = 7776000;    // 90 days
+
+    /**
+     * @var int
+     */
+    protected $maxRetries = 0;
 
     /**
      * base URL to fetch the Coordinates (Latitude, Longitutde of a Address String.
@@ -51,19 +58,19 @@ class GeoService
      *
      * sets the google code API key
      *
-     * @param string $apikey (optional) the API key from google, if empty, the default from the configuration is taken
+     * @param string $apiKey (optional) the API key from google, if empty, the default from the configuration is taken
      */
-    public function __construct($apikey = null)
+    public function __construct($apiKey = null)
     {
+        $geoCodingConfig = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['geocoding'] ?: unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['geocoding']);
         // load from extension configuration
-        if ($apikey === null) {
-            $geoCodingConfig = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['geocoding']);
-            $apikey = $geoCodingConfig['googleApiKey'];
+        if ($apiKey === null) {
+            $apiKey = $geoCodingConfig['googleApiKey'] ?: '';
         }
-        $this->apikey = $apikey;
-        if (!empty($this->apikey)) {
-            $this->geocodingUrl .= '&key=' . $apikey;
+        if (!empty($apiKey)) {
+            $this->geocodingUrl .= '&key=' . $apiKey;
         }
+        $this->maxRetries = (int)$geoCodingConfig['maxRetries'];
     }
 
     /**
@@ -75,50 +82,47 @@ class GeoService
      * @param $city
      * @param $country
      *
-     * @return array an array with accuracy, latitude and longitude
+     * @return array an array with latitude and longitude
      */
-    public function getCoordinatesForAddress($street = null, $zip = null, $city = null, $country = 'Germany')
+    public function getCoordinatesForAddress($street = null, $zip = null, $city = null, $country = 'Germany'): array
     {
-        $results = null;
-
-        $address = $street . ', ' . $zip . ' ' . $city . ', ' . $country;
-        $address = trim($address, ', ');    // remove trailing commas and whitespaces
-
-        if ($address) {
-            $cacheObject = $this->initializeCache();
-
-                // create the cache key
-            $cacheKey = 'geocode-' . strtolower(str_replace(' ', '-', preg_replace('/[^0-9a-zA-Z ]/m', '', $address)));
-
-                // not in cache yet
-            if (!$cacheObject->has($cacheKey)) {
-                $geocodingUrl = $this->geocodingUrl . '&address=' . urlencode($address);
-                $results = GeneralUtility::getUrl($geocodingUrl);
-                $results = json_decode($results, true);
-
-                $latitude = 0;
-                if (count($results['results']) > 0) {
-                    $record = reset($results['results']);
-                    $geometrics = $record['geometry'];
-
-                    $latitude = $geometrics['location']['lat'];
-                    $longitude = $geometrics['location']['lng'];
-                }
-
-                if ($latitude != 0) {
-                    $results = [
-                        'latitude' => $latitude,
-                        'longitude' => $longitude,
-                    ];
-                        // Now store the $result in cache and return
-                    $cacheObject->set($cacheKey, $results, [], $this->cacheTime);
-                }
-            } else {
-                $results = $cacheObject->get($cacheKey);
+        $addressParts = [];
+        foreach ([$street, $zip . ' ' . $city, $country] as $addressPart) {
+            if (empty($addressPart)) {
+                continue;
             }
+            $addressParts[] = trim($addressPart);
         }
 
-        return $results;
+        $address = ltrim(implode(',', $addressParts), ',');
+        if (empty($address)) {
+            return [];
+        }
+
+        $cacheObject = $this->initializeCache();
+        $cacheKey = 'geocode-' . strtolower(str_replace(' ', '-', preg_replace('/[^0-9a-zA-Z ]/m', '', $address)));
+
+        // Found in cache? Return it.
+        if ($cacheObject->has($cacheKey)) {
+            return $cacheObject->get($cacheKey);
+        }
+
+        $result = $this->getApiCallResult(
+            $this->geocodingUrl . '&address=' . urlencode($address),
+            $this->maxRetries
+        );
+
+        if (empty($result['results']) || empty($result['results'][0]['geometry'])) {
+            return [];
+        }
+        $geometry = $result['results'][0]['geometry'];
+        $result = [
+            'latitude' => $geometry['location']['lat'],
+            'longitude' => $geometry['location']['lng'],
+        ];
+        // Now store the $result in cache and return
+        $cacheObject->set($cacheKey, $result, [], $this->cacheTime);
+        return $result;
     }
 
     /**
@@ -127,8 +131,26 @@ class GeoService
      *
      * only works if your DB table has the necessary fields
      * helpful when calculating a batch of addresses and save the latitude/longitude automatically
+     * @param string $tableName
+     * @param string $latitudeField
+     * @param string $longitudeField
+     * @param string $streetField
+     * @param string $zipField
+     * @param string $cityField
+     * @param string $countryField
+     * @param string $addWhereClause
+     * @return int
      */
-    public function calculateCoordinatesForAllRecordsInTable($tableName, $latitudeField = 'latitude', $longitudeField = 'longitude', $streetField = 'street', $zipField = 'zip', $cityField = 'city', $countryField = 'country', $addWhereClause = '')
+    public function calculateCoordinatesForAllRecordsInTable(
+        $tableName,
+        $latitudeField = 'latitude',
+        $longitudeField = 'longitude',
+        $streetField = 'street',
+        $zipField = 'zip',
+        $cityField = 'city',
+        $countryField = 'country',
+        $addWhereClause = ''
+    ): int
     {
         // Fetch all records without latitude/longitude
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($tableName);
@@ -196,61 +218,32 @@ class GeoService
     }
 
     /**
-     * fetches the city of a ZIP
-     * uses the JSON query string.
-     *
-     * @todo: switch parameters
-     */
-    public function getCityFromZip($zip, $country = 'Germany', $street = null)
-    {
-        $results = null;
-
-        $address = $street . ', ' . $zip . ', ' . $country;
-        $address = trim($address, ', ');    // remove trailing commas and whitespaces
-
-        if ($address) {
-            $cacheObject = $this->initializeCache();
-
-                // create the cache key
-            $cacheKey = 'geocodecityfromzip-' . strtolower(str_replace(' ', '-', preg_replace('/[^0-9a-zA-Z ]/m', '', $address)));
-
-                // not in cache yet
-            if (!$cacheObject->has($cacheKey)) {
-                $geocodingUrl = $this->baseApiUrl . '&address=' . urlencode($address);
-                $results = GeneralUtility::getUrl($geocodingUrl);
-                $results = json_decode($results);
-
-                $results = [
-                    'accuracy' => $accuracy,
-                    'latitude' => $latitude,
-                    'longitude' => $longitude,
-                ];
-
-                if ($latitude != 0) {
-                    // Now store the $result in cache and return
-                    $cacheObject->set($cacheKey, $results, [], $this->cacheTime);
-                }
-            } else {
-                $results = $cacheObject->get($cacheKey);
-            }
-        }
-
-        return $results;
-    }
-
-    /**
      * Initializes the cache for the DB requests.
      *
      * @return FrontendInterface Cache Object
      */
-    protected function initializeCache()
+    protected function initializeCache(): FrontendInterface
     {
         try {
-            $cacheManager = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Cache\CacheManager::class);
-
+            $cacheManager = GeneralUtility::makeInstance(CacheManager::class);
             return $cacheManager->getCache('geocoding');
         } catch (\TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException $e) {
             throw new \RuntimeException('Unable to load Cache!', 1487138924);
         }
+    }
+
+    /**
+     * @param string $url
+     * @param int $remainingTries
+     * @return array
+     */
+    protected function getApiCallResult(string $url, int $remainingTries = 10): array
+    {
+        $response = GeneralUtility::getUrl($url);
+        $result = json_decode($response, true);
+        if ($result['status'] !== 'OVER_QUERY_LIMIT' || $remainingTries <= 0) {
+            return $result;
+        }
+        return $this->getApiCallResult($url, $remainingTries - 1);
     }
 }
