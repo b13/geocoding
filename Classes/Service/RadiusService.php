@@ -89,7 +89,7 @@ class RadiusService
         return $queryBuilder
             ->select(...$fields)
             ->addSelectLiteral(
-                $distanceSqlCalc
+                $distanceSqlCalc . ' AS `distance`'
             )
             ->from($tableName)
             ->where(
