@@ -1,2 +1,5 @@
-	#cat=basic;type=string;label=Google API Key
-googleApiKey = 
+#cat=basic;type=string;label=Google API Key
+googleApiKey =
+
+#cat=basic;type=int;label=Maximum amount of retries in case of an OVER_QUERY_LIMIT response
+maxRetries = 10

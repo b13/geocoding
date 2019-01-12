@@ -70,11 +70,12 @@ class RadiusService
      * fetches all records within a certain radius of given coordinates
      * see http://spinczyk.net/blog/2009/10/04/radius-search-with-google-maps-and-mysql/.
      *
-     * @param array  $coordinates    an associative array with "latitude" and "longitude" keys
-     * @param int    $maxDistance    the radius in kilometers
-     * @param string $tableName      the DB table that should be queried
-     * @param string $latitudeField  the DB field that holds the latitude coordinates
-     * @param string $longitudeField the DB field that holds the longitude coordinates
+     * @param array  $coordinates      an associative array with "latitude" and "longitude" keys
+     * @param int    $maxDistance      the radius in kilometers
+     * @param string $tableName        the DB table that should be queried
+     * @param string $latitudeField    the DB field that holds the latitude coordinates
+     * @param string $longitudeField   the DB field that holds the longitude coordinates
+     * @param string $additionalFields additional fields to be selected from the table (uid is always selected)
      *
      * @return array
      */
