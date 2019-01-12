@@ -142,6 +142,7 @@ class GeoService
         $apiResult = json_decode(GeneralUtility::getUrl($fullGeocodingUri), true);
         if (count($apiResult['results']) > 0) {
             $record = reset($apiResult['results']);
+            //\TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($record);
             $geometrics = $record['geometry'];
             if(false === empty($geometrics['location']['lat'])) {
                 $results = [
