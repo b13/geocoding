@@ -3,22 +3,25 @@
 Provides services for querying Google Maps GeoCoding API v3 in your own extensions.
 
 * Extension Key: geocoding
-* Author: Benjamin Mack, b:dreizehn GmbH, 2012-2018
-* Licensed under: GPL 2+
-* Required TYPO3 8.7+ (see older versions of EXT:geocoding for support for previous TYPO3 versions)
+* Author: Benjamin Mack, b13 GmbH, 2012-2020
+* Licensed under: GPLv2+
+* Requires TYPO3 8.7+ and PHP 7.2 (see older versions of EXT:geocoding for support for previous TYPO3 versions)
 * All code can be found and developed on github: https://github.com/b13/t3ext-geocoding/
 
 ## Introduction
 This extension provides an abstract way to get geo coordinates of addresses around the world. "Geocoding" let's you fetch information about an address and stores it in the DB, by using the TYPO3 Caching Framework to store the queries and results.
 
+## Installation
+Use `composer req b13/geocoding` or install it via TYPO3's Extension Manager from the TYPO3 Extension Repository using the extension key `geocoding`.
+
 ## Configuration
-Fetch a google API key (https://code.google.com/apis/console) and add it to the extension configuration info in the Extension Manager. For more information see here: https://developers.google.com/maps/documentation/geocoding/?hl=en
+Fetch a Google API key (https://code.google.com/apis/console) and add it to the extension configuration info in the Extension Manager. For more information see here: https://developers.google.com/maps/documentation/geocoding/?hl=en
 
 ## How to use
-Instantiate the class via GeneralUtility::makeInstance() or the object manager in your TYPO3 extension. Then use the public methods.
+Instantiate the class via `GeneralUtility::makeInstance()` in your TYPO3 extension. Then use the public methods.
 
 ## GeoService
-The extension provides you with a clean PHP/TYPO3 extension abstraction to fetch latitude and longitude for a specific address string. This is done in the GeoService.php Service PHP class.
+The extension provides you with a clean PHP/TYPO3 extension abstraction to fetch latitude and longitude for a specific address string. This is done in the `GeoService` Service PHP class.
 
 ### GeoService->calculateCoordinatesForAllRecordsInTable
 

@@ -15,18 +15,18 @@ $EM_CONF[$_EXTKEY] = [
     'description' => 'Provides services for google maps GeoCoding API and radius search on the database.',
     'category' => 'sv',
     'author' => 'Benjamin Mack',
-    'author_email' => 'benjamin.mack@b13.de',
-    'author_company' => 'b:dreizehn GmbH',
+    'author_email' => 'benjamin.mack@b13.com',
+    'author_company' => 'b13 GmbH',
     'shy' => '',
     'state' => 'stable',
     'uploadfolder' => 0,
     'createDirs' => '',
     'clearCacheOnLoad' => 0,
     'lockType' => '',
-    'version' => '4.0.0',
+    'version' => '4.1.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '8.7.0-9.9.99',
+            'typo3' => '8.7.0-10.4.99',
         ],
         'conflicts' => [
         ],
