@@ -6,8 +6,8 @@
     "license": "GPL-2.0-or-later",
     "keywords": ["TYPO3 CMS", "TYPO3", "Google Geocoding"],
     "require": {
-        "php": "^7.2",
-        "typo3/cms-core": "^8.7.0 || <11.0"
+        "php": "^7.2 || ^8.0",
+        "typo3/cms-core": "^8.7 || ^9.5 || ^10.0 || ^11.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.1"
@@ -24,5 +24,8 @@
         "psr-4": {
             "B13\\Geocoding\\": "Classes/"
          }
+    },
+    "config": {
+        "sort-packages": true
     }
 }

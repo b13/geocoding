@@ -3,10 +3,10 @@
 Provides services for querying Google Maps GeoCoding API v3 in your own extensions.
 
 * Extension Key: geocoding
-* Author: Benjamin Mack, b13 GmbH, 2012-2020
+* Author: Benjamin Mack, b13 GmbH, 2012-2021
 * Licensed under: GPLv2+
 * Requires TYPO3 8.7+ and PHP 7.2 (see older versions of EXT:geocoding for support for previous TYPO3 versions)
-* All code can be found and developed on github: https://github.com/b13/t3ext-geocoding/
+* All code can be found and developed on github: https://github.com/b13/geocoding/
 
 ## Introduction
 This extension provides an abstract way to get geo coordinates of addresses around the world. "Geocoding" let's you fetch information about an address and stores it in the DB, by using the TYPO3 Caching Framework to store the queries and results.
