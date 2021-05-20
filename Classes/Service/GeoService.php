@@ -232,6 +232,17 @@ class GeoService
     {
         $response = GeneralUtility::getUrl($url);
         $result = json_decode($response, true);
+        
+        if($result['status'] !== 'OK'){
+            throw new \RuntimeException(
+                sprintf(
+                    'Request to Google Maps API returned status "%s". Got following error message: "%s"', 
+                    $result['status'],
+                    $result['error_message']),
+                1621512170
+            );
+        }
+        
         if ($result['status'] !== 'OVER_QUERY_LIMIT' || $remainingTries <= 0) {
             return $result;
         }
