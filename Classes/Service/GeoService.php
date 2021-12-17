@@ -79,7 +79,7 @@ class GeoService
     {
         $addressParts = [];
         foreach ([$street, $zip . ' ' . $city, $country] as $addressPart) {
-            if (empty($addressPart)) {
+            if (strlen(trim($addressPart)) <= 0) {
                 continue;
             }
             $addressParts[] = trim($addressPart);
