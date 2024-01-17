@@ -66,7 +66,6 @@ class RadiusService
      */
     public function findAllDatabaseRecordsInRadius($coordinates, $maxDistance = 250, $tableName = 'pages', $latitudeField = 'latitude', $longitudeField = 'longitude', $additionalFields = '')
     {
-
         $fields = GeneralUtility::trimExplode(',', 'uid,' . $additionalFields, true);
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($tableName);
 

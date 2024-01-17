@@ -1,0 +1,16 @@
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - vendor/saschaegerer/phpstan-typo3/extension.neon
+
+parameters:
+  level: 5
+
+  paths:
+    - %currentWorkingDirectory%/Classes
+
+  excludePaths:
+    analyseAndScan:
+      - */node_modules/*
+      - vendor/*
+      - public/*
+      - ./.php-cs-fixer.php

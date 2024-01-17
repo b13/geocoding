@@ -141,8 +141,7 @@ class GeoService
         $cityField = 'city',
         $countryField = 'country',
         $addWhereClause = ''
-    ): int
-    {
+    ): int {
         // Fetch all records without latitude/longitude
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($tableName);
         $queryBuilder = $connection->createQueryBuilder();
@@ -185,7 +184,7 @@ class GeoService
                         }
                     }
                 }
-                    // do the geocoding
+                // do the geocoding
                 if (!empty($record[$zipField]) || !empty($record[$cityField])) {
                     $coords = $this->getCoordinatesForAddress($record[$streetField], $record[$zipField], $record[$cityField], $country);
                     if ($coords) {
@@ -232,17 +231,18 @@ class GeoService
     {
         $response = GeneralUtility::getUrl($url);
         $result = json_decode($response, true);
-        
-        if($result['status'] !== 'OK'){
+
+        if ($result['status'] !== 'OK') {
             throw new \RuntimeException(
                 sprintf(
-                    'Request to Google Maps API returned status "%s". Got following error message: "%s"', 
+                    'Request to Google Maps API returned status "%s". Got following error message: "%s"',
                     $result['status'],
-                    $result['error_message']),
+                    $result['error_message']
+                ),
                 1621512170
             );
         }
-        
+
         if ($result['status'] !== 'OVER_QUERY_LIMIT' || $remainingTries <= 0) {
             return $result;
         }

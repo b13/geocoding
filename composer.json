@@ -1,31 +1,42 @@
 {
-    "name": "b13/geocoding",
-    "type": "typo3-cms-extension",
-    "description": "Services for using geocoding from Google inside TYPO3 database records",
-    "homepage": "https://github.com/b13/t3ext-geocoding",
-    "license": "GPL-2.0-or-later",
-    "keywords": ["TYPO3 CMS", "TYPO3", "Google Geocoding"],
-    "require": {
-        "php": "^7.2 || ^8.0",
-        "typo3/cms-core": "^8.7 || ^9.5 || ^10.0 || ^11.0"
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.1"
-    },
+	"name": "b13/geocoding",
+	"type": "typo3-cms-extension",
+	"description": "Services for using geocoding from Google inside TYPO3 database records",
+	"homepage": "https://github.com/b13/t3ext-geocoding",
+	"license": "GPL-2.0-or-later",
+	"keywords": [
+		"TYPO3 CMS",
+		"TYPO3",
+		"Google Geocoding"
+	],
+	"require": {
+		"php": "^7.2 || ^8.0",
+		"typo3/cms-core": "^8.7 || ^9.5 || ^10.0 || ^11.0 || ^12"
+	},
+	"require-dev": {
+		"friendsofphp/php-cs-fixer": "^2.19",
+		"phpstan/phpstan": "^1.10",
+		"saschaegerer/phpstan-typo3": "^1.9",
+		"typo3/coding-standards": "^0.3.0"
+	},
 	"extra": {
 		"typo3/cms": {
 			"extension-key": "geocoding"
 		}
 	},
-    "replace": {
-        "typo3-ter/geocoding": "self.version"
-    },
-    "autoload": {
-        "psr-4": {
-            "B13\\Geocoding\\": "Classes/"
-         }
-    },
-    "config": {
-        "sort-packages": true
-    }
+	"replace": {
+		"typo3-ter/geocoding": "self.version"
+	},
+	"autoload": {
+		"psr-4": {
+			"B13\\Geocoding\\": "Classes/"
+		}
+	},
+	"config": {
+		"sort-packages": true,
+		"allow-plugins": {
+			"typo3/cms-composer-installers": true,
+			"typo3/class-alias-loader": true
+		}
+	}
 }
