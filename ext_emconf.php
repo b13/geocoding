@@ -1,15 +1,5 @@
 <?php
 
-//#######################################################################
-// Extension Manager/Repository config file for ext "geocoding".
-//
-// Auto generated 27-09-2012 15:06
-//
-// Manual updates:
-// Only the data in the array - everything else is removed by next
-// writing. "version" and "dependencies" must not be touched!
-//#######################################################################
-
 $EM_CONF[$_EXTKEY] = [
     'title' => 'Service: Geocoding via Google Maps',
     'description' => 'Provides services for google maps GeoCoding API and radius search on the database.',
@@ -23,10 +13,10 @@ $EM_CONF[$_EXTKEY] = [
     'createDirs' => '',
     'clearCacheOnLoad' => 0,
     'lockType' => '',
-    'version' => '4.1.0',
+    'version' => '5.0.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '8.7.0-11.5.99',
+            'typo3' => '11.5.0-12.4.99',
         ],
         'conflicts' => [
         ],
