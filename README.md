@@ -3,13 +3,13 @@
 Provides services for querying Google Maps GeoCoding API v3 in your own extensions.
 
 * Extension Key: geocoding
-* Author: Benjamin Mack, b13 GmbH, 2012-2021
+* Author: Benjamin Mack, b13 GmbH, 2012-2024
 * Licensed under: GPLv2+
-* Requires TYPO3 8.7+ and PHP 7.2 (see older versions of EXT:geocoding for support for previous TYPO3 versions)
+* Requires TYPO3 11+ and PHP 8.1 (see older versions of EXT:geocoding for support for previous TYPO3 versions)
 * All code can be found and developed on github: https://github.com/b13/geocoding/
 
 ## Introduction
-This extension provides an abstract way to get geo coordinates of addresses around the world. "Geocoding" let's you fetch information about an address and stores it in the DB, by using the TYPO3 Caching Framework to store the queries and results.
+This extension provides an abstract way to get geo coordinates of addresses around the world. "Geocoding" let you fetch information about an address and stores it in the DB, by using the TYPO3 Caching Framework.
 
 ## Installation
 Use `composer req b13/geocoding` or install it via TYPO3's Extension Manager from the TYPO3 Extension Repository using the extension key `geocoding`.
@@ -18,25 +18,24 @@ Use `composer req b13/geocoding` or install it via TYPO3's Extension Manager fro
 Fetch a Google API key (https://code.google.com/apis/console) and add it to the extension configuration info in the Extension Manager. For more information see here: https://developers.google.com/maps/documentation/geocoding/?hl=en
 
 ## How to use
-Instantiate the class via `GeneralUtility::makeInstance()` in your TYPO3 extension. Then use the public methods.
+Inject the class in your TYPO3 extension. In the rare case, that you cannot use dependency injection, `GeneralUtility::makeInstance()` works as well.
 
 ## GeoService
-The extension provides you with a clean PHP/TYPO3 extension abstraction to fetch latitude and longitude for a specific address string. This is done in the `GeoService` Service PHP class.
+The extension provides the `GeoService`, a PHP service class to fetch latitude and longitude for a specific address string.
 
 ### GeoService->calculateCoordinatesForAllRecordsInTable
 
-If you need to query user input, a JavaScript API is probably the best way to do so. However, it can be done via JS as well, by calling `GeoService->getCoordinatesForAddress($street = NULL, $zip = NULL, $city = NULL, $country = 'Germany')`
+If you need to query user input, a JavaScript API is probably the best way to do so. However, it can be done via PHP as well, by calling `GeoService->getCoordinatesForAddress($street, $zip, $city, $country)`
 
-	$geoServiceObject = GeneralUtility::makeInstance(\B13\Geocoding\Service\GeoService::class);
-	$coordinates = $geoServiceObject->getCoordinatesForAddress('Breitscheidstr. 65', 70176, 'Stuttgart', 'Germany');
+	$coordinates = $this->geoServiceObject->getCoordinatesForAddress('Breitscheidstr. 65', 70176, 'Stuttgart', 'Germany');
 
-The method does internal caching of the same requests.
+The method also caches the result of the query.
 
 ### GeoService->calculateCoordinatesForAllRecordsInTable
 
 The method `GeoService->calculateCoordinatesForAllRecordsInTable($tableName, $latitudeField, $longitudeField, $streetField, $zipField, $cityField, $countryField, $addWhereClause)` allows you to bulk-encode latitude and longitude fields for existing addresses. The call can easily be built inside a Scheduler Task (see example below).
 
-This way you can fetch the information about an address of a DB record (e.g. tt_address) and store the data in the database table, given that you add two new fields latitude and longitute to that target table in your extension (no TCA information required for that).
+This way you can fetch the information about an address of a DB record (e.g. tt_address) and store the data in the database table, given that you add two new fields latitude and longitude to that target table in your extension (no TCA information required for that).
 
 ### Example: Using GeoService as a Scheduler Task for tt_address
 

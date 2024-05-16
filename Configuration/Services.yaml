@@ -1,0 +1,18 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  B13\Geocoding\:
+    resource: '../Classes/*'
+
+  cache.ext-geocoding:
+    class: TYPO3\CMS\Core\Cache\Frontend\FrontendInterface
+    factory: [ '@TYPO3\CMS\Core\Cache\CacheManager', 'getCache' ]
+    arguments: [ 'geocoding' ]
+
+  B13\Geocoding\Service\GeoService:
+    public: true
+    arguments:
+      $cache: '@cache.ext-geocoding'
