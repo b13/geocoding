@@ -98,6 +98,58 @@ class GeoService implements SingletonInterface
     }
 
     /**
+     * This function will get coordinates by a given place_id of google
+     * @param string $placeId The Google place_id of the location
+     * @return array|null An array holding long name, lat and long for the given placeId or null if nothing was found
+     */
+    public function getCoordinatesFromPlaceId($placeId) {
+        $results = null;
+
+        $cacheObject = $this->initializeCache();
+
+        // create the cache key
+        $cacheKey = 'geocodeplace-' . $placeId;
+
+        // not in cache yet
+        if (false === $cacheObject->has($cacheKey)) {
+            $geocodingUrl = $this->geocodingUrl . '&place_id=' . urlencode($placeId);
+            $results = $this->getCoordinatesFromApi($geocodingUrl);
+            if ($results !== null) {
+                // Now store the $result in cache and return
+                $cacheObject->set($cacheKey, $results, [], $this->cacheTime);
+            }
+        } else {
+            $results = $cacheObject->get($cacheKey);
+        }
+
+        return $results;
+
+    }
+
+    /**
+     * This function will try to fetch coordinates from Google and return null or an array with the coordinates
+     * @param string $fullGeocodingUri The complete Geocoding URL for the API request
+     * @return array|null long name, latitute and longitude or null if nothing was found
+     */
+    protected function getCoordinatesFromApi($fullGeocodingUri) {
+        $results = null;
+        $apiResult = json_decode(GeneralUtility::getUrl($fullGeocodingUri), true);
+        if (count($apiResult['results']) > 0) {
+            $record = reset($apiResult['results']);
+            //\TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($record);
+            $geometrics = $record['geometry'];
+            if(false === empty($geometrics['location']['lat'])) {
+                $results = [
+                    'long_name' => $record['address_components'][0]['long_name'],
+                    'latitude' => $geometrics['location']['lat'],
+                    'longitude' => $geometrics['location']['lng'],
+                ];
+            }
+        }
+        return $results;
+    }
+
+    /**
      * geocodes all missing records in a DB table and then stores the values
      * in the DB record.
      *
