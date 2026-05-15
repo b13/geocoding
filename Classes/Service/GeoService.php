@@ -41,7 +41,7 @@ class GeoService implements SingletonInterface
         if (!empty($apiKey)) {
             $this->geocodingUrl .= '&key=' . $apiKey;
         }
-        $this->maxRetries = (int)($geoCodingConfig['maxRetries'] ?? 0);
+        $this->maxRetries = (int) ($geoCodingConfig['maxRetries'] ?? 0);
     }
 
     /**

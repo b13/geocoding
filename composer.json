@@ -18,5 +18,14 @@
         "psr-4": {
             "B13\\Geocoding\\": "Classes/"
          }
+    },
+    "require-dev": {
+        "typo3/coding-standards": "^0.8.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "typo3/cms-composer-installers": true,
+            "typo3/class-alias-loader": true
+        }
     }
 }
