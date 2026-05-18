@@ -125,7 +125,7 @@ class GeoService implements SingletonInterface
             ->select('*')
             ->from($tableName)
             ->where(
-                $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->or(
                     $queryBuilder->expr()->isNull($latitudeField),
                     $queryBuilder->expr()->eq($latitudeField, $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)),
                     $queryBuilder->expr()->eq($latitudeField, 0.00000000000),

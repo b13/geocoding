@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  static-analysis:
+    name: "PHPStan / PHP ${{ matrix.php }} / TYPO3 ${{ matrix.typo3 }}"
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - php: "8.2"
+            typo3: "^13.4"
+          - php: "8.5"
+            typo3: "^14.3"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+
+      - name: Require TYPO3 version
+        run: composer require typo3/cms-core "${{ matrix.typo3 }}" --no-update
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-plugins
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --no-progress
