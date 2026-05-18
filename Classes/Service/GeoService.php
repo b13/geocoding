@@ -9,7 +9,7 @@ namespace B13\Geocoding\Service;
  * the terms of the GNU General Public License, either version 2
  * of the License, or any later version.
  */
-
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -33,7 +33,8 @@ class GeoService implements SingletonInterface
     public function __construct(
         protected readonly FrontendInterface $cache,
         protected readonly ExtensionConfiguration $extensionConfiguration,
-        protected readonly RequestFactory $requestFactory
+        protected readonly RequestFactory $requestFactory,
+        private readonly ConnectionPool $connectionPool
     ) {
         $geoCodingConfig = $extensionConfiguration->get('geocoding');
         // load from extension configuration
@@ -68,7 +69,7 @@ class GeoService implements SingletonInterface
         }
 
         $address = ltrim(implode(',', $addressParts), ',');
-        if (empty($address)) {
+        if ($address === '' || $address === '0') {
             return [];
         }
 
@@ -115,7 +116,7 @@ class GeoService implements SingletonInterface
         string $addWhereClause = ''
     ): int {
         // Fetch all records without latitude/longitude
-        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($tableName);
+        $connection = $this->connectionPool->getConnectionForTable($tableName);
         $queryBuilder = $connection->createQueryBuilder();
         $queryBuilder->getRestrictions()
             ->removeAll()
@@ -126,16 +127,16 @@ class GeoService implements SingletonInterface
             ->where(
                 $queryBuilder->expr()->orX(
                     $queryBuilder->expr()->isNull($latitudeField),
-                    $queryBuilder->expr()->eq($latitudeField, $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
+                    $queryBuilder->expr()->eq($latitudeField, $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)),
                     $queryBuilder->expr()->eq($latitudeField, 0.00000000000),
                     $queryBuilder->expr()->isNull($longitudeField),
-                    $queryBuilder->expr()->eq($longitudeField, $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)),
+                    $queryBuilder->expr()->eq($longitudeField, $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)),
                     $queryBuilder->expr()->eq($longitudeField, 0.00000000000)
                 )
             )
             ->setMaxResults(500);
 
-        if (!empty($addWhereClause)) {
+        if ($addWhereClause !== '' && $addWhereClause !== '0') {
             $queryBuilder->andWhere(QueryHelper::stripLogicalOperatorPrefix($addWhereClause));
         }
 
@@ -147,18 +148,14 @@ class GeoService implements SingletonInterface
             if (($GLOBALS['TCA'][$tableName]['columns'][$countryField]['config']['type'] ?? '') === 'select') {
                 foreach ($GLOBALS['TCA'][$tableName]['columns'][$countryField]['config']['items'] ?? [] as $itm) {
                     if (($itm[1] ?? null) === $country) {
-                        if (is_object($GLOBALS['TSFE'])) {
-                            $country = $GLOBALS['TSFE']->sL($itm[0]);
-                        } else {
-                            $country = $GLOBALS['LANG']->sL($itm[0]);
-                        }
+                        $country = is_object($GLOBALS['TSFE']) ? $GLOBALS['TSFE']->sL($itm[0]) : $GLOBALS['LANG']->sL($itm[0]);
                     }
                 }
             }
             // do the geocoding
             if (!empty($record[$zipField]) || !empty($record[$cityField])) {
                 $coords = $this->getCoordinatesForAddress($record[$streetField] ?? null, $record[$zipField] ?? null, $record[$cityField] ?? null, $country);
-                if ($coords) {
+                if ($coords !== []) {
                     // Update the record to fill in the latitude and longitude values in the DB
                     $connection->update(
                         $tableName,
