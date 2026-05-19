@@ -66,7 +66,7 @@ class RadiusService
         $fields = GeneralUtility::trimExplode(',', 'uid,' . $additionalFields, true);
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($tableName);
 
-        $distanceSqlCalc = 'ACOS(SIN(RADIANS(' . $queryBuilder->quoteIdentifier($latitudeField) . ')) * SIN(RADIANS(' . (float) $coordinates['latitude'] . ')) + COS(RADIANS(' . $queryBuilder->quoteIdentifier($latitudeField) . ')) * COS(RADIANS(' . (float) ($coordinates['latitude'] ?? 0) . ')) * COS(RADIANS(' . $queryBuilder->quoteIdentifier($longitudeField) . ') - RADIANS(' . (float) ($coordinates['longitude'] ?? 0) . '))) * ' . $this->earthRadius;
+        $distanceSqlCalc = 'ACOS(SIN(RADIANS(' . $queryBuilder->quoteIdentifier($latitudeField) . ')) * SIN(RADIANS(' . (float)$coordinates['latitude'] . ')) + COS(RADIANS(' . $queryBuilder->quoteIdentifier($latitudeField) . ')) * COS(RADIANS(' . (float)($coordinates['latitude'] ?? 0) . ')) * COS(RADIANS(' . $queryBuilder->quoteIdentifier($longitudeField) . ') - RADIANS(' . (float)($coordinates['longitude'] ?? 0) . '))) * ' . $this->earthRadius;
 
         return $queryBuilder
             ->select(...$fields)

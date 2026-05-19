@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
 use TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend;
+use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
 
 defined('TYPO3') || die();
 

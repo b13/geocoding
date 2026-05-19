@@ -9,9 +9,9 @@ namespace B13\Geocoding\Service;
  * the terms of the GNU General Public License, either version 2
  * of the License, or any later version.
  */
-use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryHelper;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
@@ -42,7 +42,7 @@ class GeoService implements SingletonInterface
         if (!empty($apiKey)) {
             $this->geocodingUrl .= '&key=' . $apiKey;
         }
-        $this->maxRetries = (int) ($geoCodingConfig['maxRetries'] ?? 0);
+        $this->maxRetries = (int)($geoCodingConfig['maxRetries'] ?? 0);
     }
 
     /**
