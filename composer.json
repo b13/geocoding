@@ -21,7 +21,6 @@
     },
     "require-dev": {
         "typo3/coding-standards": "^0.8.0",
-        "ssch/typo3-rector": "^3.14",
         "saschaegerer/phpstan-typo3": "^2.0 || ^3.0"
     },
     "config": {
