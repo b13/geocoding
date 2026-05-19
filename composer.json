@@ -6,8 +6,8 @@
     "license": "GPL-2.0-or-later",
     "keywords": ["TYPO3 CMS", "TYPO3", "Google Geocoding"],
     "require": {
-        "php": "^8.1",
-        "typo3/cms-core": "^11.5 || ^12.4"
+        "php": "^8.2",
+        "typo3/cms-core": "^13.4 || ^14.3"
     },
 	"extra": {
 		"typo3/cms": {
@@ -18,5 +18,15 @@
         "psr-4": {
             "B13\\Geocoding\\": "Classes/"
          }
+    },
+    "require-dev": {
+        "typo3/coding-standards": "^0.8.0",
+        "saschaegerer/phpstan-typo3": "^2.0 || ^3.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "typo3/cms-composer-installers": true,
+            "typo3/class-alias-loader": true
+        }
     }
 }
